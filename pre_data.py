@@ -52,15 +52,19 @@ def Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset):
             val_temp+=w
         valid_dataset = val_temp
 
-    if train_mode == 1:
+    if train_mode == 1:                                                                                                 # 기존
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=bs, shuffle=True, num_workers=8)
-    elif train_mode == 2:
+    elif train_mode == 2:                                                                                               # 기존 균등
         for i in train_label:
             t = i[:min_len]
             train_loader += t
         train_loader = torch.utils.data.DataLoader(tuple(train_loader), batch_size=bs, shuffle=True, num_workers=8)
-    elif train_mode == 4:
-        #train_loader = torch.utils.data.DataLoader(tuple(sorted(train_dataset, key=lambda x: x[1])), batch_size=256, shuffle=False, num_workers=8)
+    elif train_mode == 3:                                                                                               # 에폭 균등
+        for i in train_label:
+            t = i[:min_len]
+            train_loader += t
+        train_loader = torch.utils.data.DataLoader(tuple(train_loader), batch_size=bs, shuffle=True, num_workers=8)
+    else:                                                                                                               # 배치 균등
         temp = []
         for i in range(min_len):
             w = []
@@ -68,12 +72,6 @@ def Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset):
                 w.append(t.pop())
             temp+=w
         train_loader = torch.utils.data.DataLoader(tuple(temp), batch_size=bs, shuffle=False, num_workers=8)
-    else:        
-        for i in train_label:
-            t = i[:min_len]
-            train_loader += t
-            #train_loader.append(torch.utils.data.DataLoader(tuple(t), batch_size=bs, shuffle=True, num_workers=8))
-        train_loader = torch.utils.data.DataLoader(tuple(train_loader), batch_size=bs, shuffle=True, num_workers=8)
         
     valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=bs, shuffle=True, num_workers=8)
     
