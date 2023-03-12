@@ -54,18 +54,12 @@ def Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset):
 
     if train_mode == 1:                                                                                                 # 기존
         train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=bs, shuffle=True, num_workers=8)
-    elif train_mode == 2 or train_mode == 3:                                                                                               # 단순, 에폭 균등
+    elif train_mode == 2 or train_mode == 3:                                                                            # 단순, 에폭 균등
         for i in train_data_by_label:
             t = i[:min_len]
             train_loader += t
         train_loader = torch.utils.data.DataLoader(tuple(train_loader), batch_size=bs, shuffle=True, num_workers=8)
-        ''' (중복되는 코드로 유지보수를 위해 추후 지워야 할 코드)
-    elif train_mode == 3:                                                                                               # 에폭 균등
-        for i in train_data_by_label:
-            t = i[:min_len]
-            train_loader += t
-        train_loader = torch.utils.data.DataLoader(tuple(train_loader), batch_size=bs, shuffle=True, num_workers=8)
-        '''
+        
     else:                                                                                                               # 배치 균등
         temp = []
         for i in range(min_len):
@@ -99,95 +93,7 @@ def loadData(dataset_name = None, train_mode=None, bs=200, applyDataAug = False)
         aug, _ = train_test_split(aug_data, test_size=0.2, shuffle=False)
         train_dataset = train_dataset + aug
 
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'cifar10')
+    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset_name)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=bs, shuffle=True, num_workers=8)
 
     return train_loader, valid_loader, test_loader
-
-''' (유지보수를 위해 추후 지워야 할 코드)
-def Load_Cifar10(train_mode=None, bs = 200):
-    print("no aug")
-    dataset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True, download=True,
-                                           transform=transforms.ToTensor())
-
-    train_dataset, valid_dataset = train_test_split(dataset, test_size=0.2, shuffle=False)
-    test_dataset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False, download=True, transform=transforms.ToTensor())
-
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'cifar10')
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=bs, shuffle=True, num_workers=8)
-    
-    return train_loader, valid_loader, test_loader
-
-
-def Load_Cifar10_Aug(train_mode=None, bs=200):
-    dataset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=True, download=True,
-                                           transform=transforms.ToTensor())
-
-    train_dataset, valid_dataset = train_test_split(dataset, test_size=0.2, shuffle=False)
-
-    aug_data = torch.load("aug_cifar10.pt")
-    aug, _ = train_test_split(aug_data, test_size=0.2, shuffle=False)
-    train_dataset = train_dataset + aug
-
-    test_dataset = torchvision.datasets.CIFAR10(root='./data/cifar10', train=False, download=True,
-                                                transform=transforms.ToTensor())
-
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'cifar10')
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=bs, shuffle=True, num_workers=8)
-
-    return train_loader, valid_loader, test_loader
-    
-def Load_MNIST(train_mode = None, bs = 200):
-    aug_data = torch.load("aug_mnist.pt")
-    aug, _ = train_test_split(aug_data, test_size=0.5, shuffle=False)
-    dataset = torchvision.datasets.MNIST(root='./data/mnist', train=True, download=True, transform=transforms.ToTensor()) + aug
-    train_dataset, valid_dataset = train_test_split(dataset, test_size=0.2, shuffle=False)
-    testset = torchvision.datasets.MNIST(root='./data/mnist', train=False, download=True, transform=transforms.ToTensor())
-    
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'mnist')
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=bs, shuffle=True, num_workers=8)
-    
-    return train_loader, valid_loader, test_loader
-
-
-def Load_FMNIST(train_mode = None, bs = 200):
-    aug_data = torch.load("aug_fmnist.pt")
-    aug, _ = train_test_split(aug_data, test_size=0.5, shuffle=False)
-    dataset = torchvision.datasets.FashionMNIST(root='./data/fmnist', train=True, download=True, transform=transforms.ToTensor()) + aug
-    train_dataset, valid_dataset = train_test_split(dataset, test_size=0.2, shuffle=False)
-    testset = torchvision.datasets.FashionMNIST(root='./data/fmnist', train=False, download=True, transform=transforms.ToTensor())
-    
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'fmnist')
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=bs, shuffle=True, num_workers=8)
-    
-    return train_loader, valid_loader, test_loader
-
-def Load_Cifar100(train_mode = None, bs = 200):
-    dataset = torchvision.datasets.CIFAR100(root='./data/cifar100', train=True, download=True, transform=transforms.ToTensor())
-    train_dataset, valid_dataset = train_test_split(dataset, test_size=0.25, shuffle=False)
-    testset = torchvision.datasets.CIFAR100(root='./data/cifar100', train=False, download=True, transform=transforms.ToTensor())
-    
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'cifar100')
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=bs, shuffle=True, num_workers=8)
-    
-    return train_loader, valid_loader, test_loader
-
-
-def Load_Cifar100_Aug(train_mode=None, bs=200):
-    dataset = torchvision.datasets.CIFAR100(root='./data/cifar100', train=True, download=True,
-                                           transform=transforms.ToTensor())
-
-    train_dataset, valid_dataset = train_test_split(dataset, test_size=0.2, shuffle=False)
-
-    aug_data = torch.load("aug_cifar100.pt")
-    aug, _ = train_test_split(aug_data, test_size=0.2, shuffle=True)
-    train_dataset = train_dataset + aug
-
-    testset = torchvision.datasets.CIFAR100(root='./data/cifar100', train=False, download=True,
-                                            transform=transforms.ToTensor())
-
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, 'cifar100')
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=bs, shuffle=True, num_workers=8)
-
-    return train_loader, valid_loader, test_loader
-'''

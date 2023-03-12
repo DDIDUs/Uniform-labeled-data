@@ -86,30 +86,17 @@ def train(args, repeat_index):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    train_loader, valid_loader, test_loader  = loadData(dataset_name=config.dataset, train_mode=config.train_mode, bs=config.batch_size, applyDataAug=config.Augmentation)
-    ''' (추후 지워야 할 코드)
-    if config.dataset == "mnist":                                                                                                   # Load data from dataset
-        train_loader, valid_loader, test_loader = Load_MNIST(train_mode, bs=batch_size)
-    elif config.dataset == "cifar10":
-        if aug==False:
-            train_loader, valid_loader, test_loader = Load_Cifar10(train_mode, bs=batch_size)
-        if aug == True:
-            train_loader, valid_loader, test_loader = Load_Cifar10_Aug(train_mode, bs=batch_size)
-    elif config.dataset == "cifar100":
-        if aug==False:
-            train_loader, valid_loader, test_loader = Load_Cifar100(train_mode, bs=batch_size)
-        if aug == True:
-            train_loader, valid_loader, test_loader = Load_Cifar100_Aug(train_mode, bs=batch_size)
-        number_of_classes = 100
-    else:
-        train_loader, valid_loader, test_loader = Load_FMNIST(train_mode, bs=batch_size)
-    '''
-    if is_train:                                                                                                                    # Train phase
+    train_loader, valid_loader, test_loader  = loadData(dataset_name=config.dataset, 
+                                                        train_mode=config.train_mode, 
+                                                        bs=config.batch_size, 
+                                                        applyDataAug=config.Augmentation)
+    
+    if is_train:                                                                                                                    # 학습
         early = EarlyStopping(patience=config.patience, dir=output_dir)
         
         train_model = config.train_model
         
-        if train_model == 'vggnet':                                                                                                 # Prepare model
+        if train_model == 'vggnet':                                                                                                 # 학습 모델 준비
             if config.dataset == "mnist" or config.dataset == "fmnist":
                 model = VGG("VGG16m", config.dataset, nc=number_of_classes)
             else:
@@ -133,28 +120,16 @@ def train(args, repeat_index):
             train = train_loader
 
         best_acc = 0
-        for i in range(config.epochs):                                                                                                      # Train start
+        for i in range(config.epochs):                                                                                              # 모델 학습 시작
             model.train()
             print("=====", i, "Step of ", config.epochs, "=====")
             
             if config.train_mode == 3 or config.train_mode == 4:
-                train, _, _  = loadData(dataset_name=config.dataset,train_mode=config.train_mode,bs=config.batch_size,applyDataAug=config.Augmentation)# Rebuild Batch data
-                ''' (추후 지워야 할 코드)
-                if config.dataset == "mnist":
-                    train, _, _ = Load_MNIST(train_mode, bs=batch_size)
-                elif config.dataset == "cifar10":
-                    if aug == False:
-                        train, _, _ = Load_Cifar10(train_mode, bs=batch_size)
-                    if aug == True:
-                        train, _, _ = Load_Cifar10_Aug(train_mode, bs=batch_size)
-                elif config.dataset == "cifar100":
-                    if aug == False:
-                        train, _, _ = Load_Cifar100(train_mode, bs=batch_size)
-                    if aug == True:
-                        train, _, _ = Load_Cifar100_Aug(train_mode, bs=batch_size)
-                else:
-                    train, _, _ = Load_FMNIST(train_mode, bs=batch_size)          
-                '''
+                train, _, _  = loadData(dataset_name=config.dataset,
+                                        train_mode=config.train_mode,
+                                        bs=config.batch_size,
+                                        applyDataAug=config.Augmentation)                                                           # 배치 데이터 재구성
+            
             for j, batch in enumerate(train):
                 x, y_ = batch[0].to(device), batch[1].to(device)
                 #lr_scheduler(optimizer, early)
@@ -173,7 +148,7 @@ def train(args, repeat_index):
 
             
             model.eval()
-            with torch.no_grad():                                                                                                   # Valid phase
+            with torch.no_grad():                                                                                                   # 모델 평가
                 for image,label in valid_loader:
                     x = image.to(device)
                     y = label.to(device)
@@ -198,7 +173,7 @@ def train(args, repeat_index):
                 print("stop")
                 break
             scheduler.step()
-    else:
+    else:                                                                                                                          # 모델 추론
         mymodel = '{}/best.pt'.format(output_dir)
         # Test phase
         model = torch.load(mymodel).to(device)
