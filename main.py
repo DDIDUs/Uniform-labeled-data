@@ -145,7 +145,6 @@ def train(args, repeat_index):
             correct = 0
             total = 0
             valid_loss = 0
-
             
             model.eval()
             with torch.no_grad():                                                                                                   # 모델 평가

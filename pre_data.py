@@ -80,20 +80,26 @@ dataset_load_func = {
     'cifar100': torchvision.datasets.CIFAR100,
 }
 
-def loadData(dataset_name = None, train_mode=None, bs=200, applyDataAug = False):
-    dataset = dataset_load_func[dataset_name](root='./data/{}'.format(dataset_name), train=True, download=True,
-                                      transform=transforms.ToTensor())
-    test_dataset = dataset_load_func[dataset_name](root='./data/{}'.format(dataset_name), train=False, download=True,
-                                                transform=transforms.ToTensor())
+def loadData(dataset_name = None, train_mode=None, batch_size=200, applyDataAug = False):
+
+    dataset = dataset_load_func[dataset_name](root='./data/{}'.format(dataset_name), 
+                                              train=True, 
+                                              download=True,
+                                              transform=transforms.ToTensor())
+    
+    test_dataset = dataset_load_func[dataset_name](root='./data/{}'.format(dataset_name), 
+                                                   train=False, 
+                                                   download=True,
+                                                   transform=transforms.ToTensor())
 
     train_dataset, valid_dataset = train_test_split(dataset, test_size=0.2, shuffle=False)
 
-    if applyDataAug:
+    if applyDataAug:                                                                                                  # 데이터 증강
         aug_data = torch.load("aug_{}.pt".format(dataset_name))
         aug, _ = train_test_split(aug_data, test_size=0.2, shuffle=False)
         train_dataset = train_dataset + aug
 
-    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset_name)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=bs, shuffle=True, num_workers=8)
+    train_loader, valid_loader = Prepare_data(train_mode, train_dataset, valid_dataset, batch_size, dataset_name)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
     return train_loader, valid_loader, test_loader
