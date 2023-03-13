@@ -88,7 +88,7 @@ def train(args, repeat_index):
 
     train_loader, valid_loader, test_loader  = loadData(dataset_name=config.dataset, 
                                                         train_mode=config.train_mode, 
-                                                        bs=config.batch_size, 
+                                                        batch_size=config.batch_size, 
                                                         applyDataAug=config.Augmentation)
     
     if is_train:                                                                                                                    # 학습
@@ -127,7 +127,7 @@ def train(args, repeat_index):
             if config.train_mode == 3 or config.train_mode == 4:
                 train, _, _  = loadData(dataset_name=config.dataset,
                                         train_mode=config.train_mode,
-                                        bs=config.batch_size,
+                                        batch_size=config.batch_size,
                                         applyDataAug=config.Augmentation)                                                           # 배치 데이터 재구성
             
             for j, batch in enumerate(train):
