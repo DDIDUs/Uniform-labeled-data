@@ -59,7 +59,6 @@ def Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset):
             t = i[:min_len]
             train_loader += t
         train_loader = torch.utils.data.DataLoader(tuple(train_loader), batch_size=bs, shuffle=True, num_workers=8)
-        
     else:                                                                                                               # 배치 균등
         temp = []
         for i in range(min_len):

@@ -19,7 +19,7 @@ from args import build_parser
 import sys
 
 class EarlyStopping:
-    def __init__(self, patience=7, verbose=True, delta=0, dir='output'):
+    def __init__(self, patience=7, verbose=True, delta=0, dir='./output'):
         self.patience = patience
         self.verbose = verbose
         self.counter = 0
@@ -50,8 +50,8 @@ class EarlyStopping:
         '''validation loss가 감소하면 모델을 저장한다.'''
         if self.verbose:
             print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
-        torch.save(model.state_dict(), '{}/checkpoint_val_{:.2f}.pt'.format(self.dir,val_loss))
-        torch.save(model, '{}/best.pt'.format(self.dir))
+        #torch.save(model.state_dict(), '{}/checkpoint_val_{:.2f}.pt'.format(self.dir,val_loss))
+        torch.save(model, '{}/loss_best.pt'.format(self.dir))
         self.val_loss_min = val_loss
 
 def lr_scheduler(optimizer, early, l):
@@ -93,7 +93,10 @@ def train(args, repeat_index):
     
     if is_train:                                                                                                                    # 학습
         early = EarlyStopping(patience=config.patience, dir=output_dir)
-        
+        #output_log_dir = "./output/{}/{}/r{}_m{}_aug".format(config.dataset,config.train_model, repeat_index, config.train_mode)
+
+        logFile= open("{}/log.txt".format(output_dir), "w")
+
         train_model = config.train_model
         
         if train_model == 'vggnet':                                                                                                 # 학습 모델 준비
@@ -158,22 +161,26 @@ def train(args, repeat_index):
 
                     total += label.size(0)
                     correct += (output_index == y).sum().float()
+                logText = "Epoch {:03d}, Valid Acc: {:.2f}%, Valid loss: {:.2f}\n".format(i, 100*correct/total, valid_loss)
                 train_acc = "Accuracy against Validation Data: {:.2f}%, Valid_loss: {:.2f}".format(100*correct/total, valid_loss)
-                print(train_acc)
+                print(logText)
+                logFile.write(logText)
+                logFile.flush()
 
                 current_acc = (correct / total) * 100
                 if current_acc > best_acc:
                     print(" Accuracy increase from {:.2f}% to {:.2f}%. Model saved".format(best_acc, current_acc))
                     best_acc = current_acc
-                    torch.save(model, './{}/epoch_{}_acc_{:.2f}_loss_{:.2f}.pt'.format(output_dir,i,best_acc,valid_loss))
+                    torch.save(model, '{}/acc_best.pt'.format(output_dir))
             early(valid_loss, model)
 
             if early.early_stop:
                 print("stop")
                 break
             scheduler.step()
+        logFile.close()
     else:                                                                                                                          # 모델 추론
-        mymodel = '{}/best.pt'.format(output_dir)
+        mymodel = '{}/loss_best.pt'.format(output_dir)
         # Test phase
         model = torch.load(mymodel).to(device)
         model.eval()
@@ -188,10 +195,9 @@ def train(args, repeat_index):
             correct += predict.eq(batch[1]).sum().item()
             c = (predict == batch[1]).squeeze()
 
-                
-        print(correct, total_cnt)
         valid_acc = correct / total_cnt
         print("\nTest Acc : {}, {}".format(valid_acc,output_dir))
+
         
 if __name__ == '__main__':
     parser = build_parser()
