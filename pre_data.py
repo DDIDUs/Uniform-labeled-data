@@ -40,9 +40,12 @@ def Prepare_data(train_mode, train_dataset, valid_dataset, bs, dataset):
             random.shuffle(valid_data_by_label[i])
             train_data_len.append(len(train_data_by_label[i]))
             valid_len.append(len(valid_data_by_label[i]))
-        min_len = min(train_data_len)
+        min_len = max(train_data_len)
+        val_min_len = max(valid_len)
 
-        val_min_len = min(valid_len)
+        for i in label:
+            train_data_by_label[i] += random.sample(train_data_by_label[i], min_len - len(train_data_by_label[i]))
+            valid_data_by_label[i] += random.sample(valid_data_by_label[i], val_min_len - len(valid_data_by_label[i]))
         val_temp = []
 
         for i in range(val_min_len):
