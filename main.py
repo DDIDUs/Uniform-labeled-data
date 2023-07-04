@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import os
+from tqdm import tqdm
 
 from models.den_model import *
 from models.vgg_model import *
@@ -76,7 +77,7 @@ def train(args, repeat_index):
     if config.dataset == "cifar100":
         number_of_classes = 100
     else:
-        number_of_classes = 10
+        number_of_classes = 1000
     
     if config.Augmentation==True:
         output_dir = "./output/{}/{}/r{}_m{}_aug".format(config.dataset,config.train_model, repeat_index, config.train_mode)
@@ -86,10 +87,10 @@ def train(args, repeat_index):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    train_loader, valid_loader, test_loader  = loadData(dataset_name=config.dataset, 
+    train_loader, valid_loader = loadData(dataset_name=config.dataset, 
                                                         train_mode=config.train_mode, 
                                                         batch_size=config.batch_size, 
-                                                        applyDataAug=config.Augmentation)
+                                                        applyDataAug=False)
     
     if is_train:                                                                                                                    # 학습
         early = EarlyStopping(patience=config.patience, dir=output_dir)
@@ -98,14 +99,14 @@ def train(args, repeat_index):
         logFile= open("{}/log.txt".format(output_dir), "w")
 
         train_model = config.train_model
-        
+
         if train_model == 'vggnet':                                                                                                 # 학습 모델 준비
             if config.dataset == "mnist" or config.dataset == "fmnist":
                 model = VGG("VGG16m", config.dataset, nc=number_of_classes)
             else:
                 model = VGG("VGG16", config.dataset, nc=number_of_classes)
         elif train_model == 'resnet':
-            model = ResNet50(config.dataset, nc=number_of_classes)
+            model = ResNet16(config.dataset, nc=number_of_classes)
         elif train_model == 'densenet':
             model = DenseNet(growthRate=12, depth=100, reduction=0.5,
                             bottleneck=True, nClasses=number_of_classes, data=config.dataset)
@@ -133,7 +134,7 @@ def train(args, repeat_index):
                                         batch_size=config.batch_size,
                                         applyDataAug=config.Augmentation)                                                           # 배치 데이터 재구성
             
-            for j, batch in enumerate(train):
+            for j, batch in tqdm(enumerate(train), total=len(train)):
                 x, y_ = batch[0].to(device), batch[1].to(device)
                 #lr_scheduler(optimizer, early)
                 optimizer.zero_grad()
@@ -180,6 +181,10 @@ def train(args, repeat_index):
             scheduler.step()
         logFile.close()
     else:                                                                                                                          # 모델 추론
+        test_loader = loadData(dataset_name=config.dataset, 
+                                train_mode=config.train_mode, 
+                                batch_size=config.batch_size, 
+                                applyDataAug=False)
         mymodel = '{}/loss_best.pt'.format(output_dir)
         # Test phase
         model = torch.load(mymodel).to(device)
