@@ -62,7 +62,6 @@ def lr_scheduler(optimizer, early, l):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
         
-        
 def train(args, repeat_index):
 
     config = args
@@ -129,7 +128,7 @@ def train(args, repeat_index):
             print("=====", i, "Step of ", config.epochs, "=====")
             
             if config.train_mode == 3 or config.train_mode == 4:
-                train, _, _  = loadData(dataset_name=config.dataset,
+                train, _  = loadData(dataset_name=config.dataset,
                                         train_mode=config.train_mode,
                                         batch_size=config.batch_size,
                                         applyDataAug=config.Augmentation)                                                           # 배치 데이터 재구성
