@@ -20,8 +20,12 @@ def process_data(img_info, augmentation=False, mode = 1):
     new_info = []
     label_len = [i for i in range(1000)]
     temp_aug = [[] for _ in label_len]
+
     if augmentation:
+        for i in label_len:
+            data_len.append(len(img_info[i]))
         for i in label_len:                                                                                                 # Aug append
+            img_info[i] += random.sample(img_info[i], max(data_len) - len(img_info[i]))
             temp_aug[i] = random.sample(img_info[i], int(len(img_info[i])*0.2))        
         for i in temp_aug:
             for j in i:
@@ -29,8 +33,6 @@ def process_data(img_info, augmentation=False, mode = 1):
         for i in label_len:
             img_info[i] += temp_aug[i]
 
-    for i in label_len:
-        data_len.append(len(img_info[i]))
     for i in img_info:
         new_info += i
     random.shuffle(new_info)
@@ -112,15 +114,12 @@ def loadData(dataset_name = None, train_mode=None, batch_size=200, applyDataAug 
         with open("./data/{}/valid_path.pkl".format(dataset_name), "rb") as f:
             v_data = pickle.load(f)
             
-    if train_mode == "train":
+    if dataset_name == "imagenet":
         train_data = ImageData(process_data(t_data, applyDataAug, train_mode), "data/imagenet", transforms_Imagenet, transforms_train, applyDataAug)
         valid_data = ImageData(process_data(v_data, applyDataAug, train_mode), "data/imagenet", transforms_Imagenet, transforms_train, applyDataAug)
-        train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=False, num_workers=0)      
-        valid_loader = DataLoader(dataset=valid_data, batch_size=batch_size, shuffle=False, num_workers=0)
+        train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True, num_workers=0)      
+        valid_loader = DataLoader(dataset=valid_data, batch_size=batch_size, shuffle=True, num_workers=0)
         return train_loader, valid_loader
     else:
-        if not path.exists("data/{}/test_path.pkl".format(dataset_name)):
-            t_data = pre_path("data/{}/test".format(dataset_name), dataset_name, "test")
-        test_data = ImageData(process_data(t_data, applyDataAug, train_mode), "data/imagenet", transforms_Imagenet, transforms_train, applyDataAug)
-        test_loader = DataLoader(dataset=test_data, batch_size=batch_size, shuffle=False, num_workers=0)
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         return test_loader
